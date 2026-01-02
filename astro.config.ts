@@ -11,7 +11,6 @@ import { expressiveCodeOptions } from "./src/site.config";
 import { siteConfig } from "./src/site.config";
 
 // ⭐⭐ 正确的 Vercel 适配器 import（必须是 serverless）
-import vercel from "@astrojs/vercel/serverless";
 
 import remarkDirective from "remark-directive";
 import { remarkAdmonitions } from "./src/plugins/remark-admonitions";
@@ -26,12 +25,7 @@ import rehypeKatex from "rehype-katex";
 import decapCmsOauth from "astro-decap-cms-oauth";
 
 export default defineConfig({
-  output: "server",
-
-  // ⭐⭐ 关键：强制 Vercel 使用 nodejs20.x
-  adapter: vercel({
-    runtime: "nodejs20.x"
-  }),
+      output: "static",
 
   // ⭐ 禁用 sharp，避免构建卡死
   image: {
