@@ -9,16 +9,16 @@ import webmanifest from "astro-webmanifest";
 import { defineConfig, envField } from "astro/config";
 import { expressiveCodeOptions } from "./src/site.config";
 import { siteConfig } from "./src/site.config";
+
+// ⭐⭐ 正确的 Vercel 适配器 import（必须是 serverless）
 import vercel from "@astrojs/vercel/serverless";
 
-// Remark plugins
 import remarkDirective from "remark-directive";
 import { remarkAdmonitions } from "./src/plugins/remark-admonitions";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time";
 import remarkMath from "remark-math";
 import remarkGemoji from "remark-gemoji";
 
-// Rehype plugins
 import rehypeExternalLinks from "rehype-external-links";
 import rehypeUnwrapImages from "rehype-unwrap-images";
 import rehypeKatex from "rehype-katex";
@@ -26,27 +26,24 @@ import rehypeKatex from "rehype-katex";
 import decapCmsOauth from "astro-decap-cms-oauth";
 
 export default defineConfig({
-  // ⭐ SSR 模式（Cactus 主题默认需要）
   output: "server",
 
-  // ⭐⭐ 关键修复：强制 Vercel 使用 Node.js 20（否则会报 runtime 错误）
+  // ⭐⭐ 关键：强制 Vercel 使用 nodejs20.x
   adapter: vercel({
     runtime: "nodejs20.x"
   }),
 
+  // ⭐ 禁用 sharp，避免构建卡死
   image: {
-    domains: ["webmention.io"],
+    service: {
+      entrypoint: "astro/assets/services/noop"
+    }
   },
 
   integrations: [
     expressiveCode(expressiveCodeOptions),
-    icon({
-      iconDir: "public/icons",
-    }),
-    tailwind({
-      applyBaseStyles: false,
-      nesting: true,
-    }),
+    icon({ iconDir: "public/icons" }),
+    tailwind({ applyBaseStyles: false, nesting: true }),
     sitemap(),
     mdx(),
     robotsTxt(),
@@ -57,21 +54,9 @@ export default defineConfig({
       lang: siteConfig.lang,
       icon: "public/icon.svg",
       icons: [
-        {
-          src: "icons/apple-touch-icon.png",
-          sizes: "180x180",
-          type: "image/png",
-        },
-        {
-          src: "icons/icon-192.png",
-          sizes: "192x192",
-          type: "image/png",
-        },
-        {
-          src: "icons/icon-512.png",
-          sizes: "512x512",
-          type: "image/png",
-        },
+        { src: "icons/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+        { src: "icons/icon-192.png", sizes: "192x192", type: "image/png" },
+        { src: "icons/icon-512.png", sizes: "512x512", type: "image/png" }
       ],
       start_url: "/",
       background_color: "#1d1f21",
@@ -80,85 +65,60 @@ export default defineConfig({
       config: {
         insertFaviconLinks: false,
         insertThemeColorMeta: false,
-        insertManifestLink: false,
-      },
+        insertManifestLink: false
+      }
     }),
-    decapCmsOauth(),
+    decapCmsOauth()
   ],
 
   markdown: {
     rehypePlugins: [
-      [
-        rehypeExternalLinks,
-        {
-          rel: ["nofollow", "noreferrer"],
-          target: "_blank",
-        },
-      ],
+      [rehypeExternalLinks, { rel: ["nofollow", "noreferrer"], target: "_blank" }],
       rehypeUnwrapImages,
-      rehypeKatex,
+      rehypeKatex
     ],
     remarkPlugins: [
       remarkReadingTime,
       remarkDirective,
       remarkAdmonitions,
       remarkMath,
-      remarkGemoji,
+      remarkGemoji
     ],
     remarkRehype: {
-      footnoteLabelProperties: {
-        className: [""],
-      },
-      footnoteLabel: "脚注：",
-    },
+      footnoteLabelProperties: { className: [""] },
+      footnoteLabel: "脚注："
+    }
   },
 
   prefetch: {
     defaultStrategy: "viewport",
-    prefetchAll: true,
+    prefetchAll: true
   },
 
   site: "https://demo.343700.xyz/",
 
   vite: {
-    optimizeDeps: {
-      exclude: ["@resvg/resvg-js"],
-    },
-    plugins: [rawFonts([".ttf", ".woff"])],
+    optimizeDeps: { exclude: ["@resvg/resvg-js"] },
+    plugins: [rawFonts([".ttf", ".woff"])]
   },
 
   env: {
     schema: {
-      WEBMENTION_API_KEY: envField.string({
-        context: "server",
-        access: "secret",
-        optional: true,
-      }),
-      WEBMENTION_URL: envField.string({
-        context: "client",
-        access: "public",
-        optional: true,
-      }),
-      WEBMENTION_PINGBACK: envField.string({
-        context: "client",
-        access: "public",
-        optional: true,
-      }),
-    },
-  },
+      WEBMENTION_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
+      WEBMENTION_URL: envField.string({ context: "client", access: "public", optional: true }),
+      WEBMENTION_PINGBACK: envField.string({ context: "client", access: "public", optional: true })
+    }
+  }
 });
 
-function rawFonts(ext: string[]) {
+function rawFonts(ext) {
   return {
     name: "vite-plugin-raw-fonts",
     transform(_, id) {
       if (ext.some((e) => id.endsWith(e))) {
         const buffer = fs.readFileSync(id);
-        return {
-          code: `export default ${JSON.stringify(buffer)}`,
-          map: null,
-        };
+        return { code: `export default ${JSON.stringify(buffer)}`, map: null };
       }
-    },
+    }
   };
 }
