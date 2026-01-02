@@ -10,8 +10,6 @@ import { defineConfig, envField } from "astro/config";
 import { expressiveCodeOptions } from "./src/site.config";
 import { siteConfig } from "./src/site.config";
 
-// ⭐⭐ 正确的 Vercel 适配器 import（必须是 serverless）
-
 import remarkDirective from "remark-directive";
 import { remarkAdmonitions } from "./src/plugins/remark-admonitions";
 import { remarkReadingTime } from "./src/plugins/remark-reading-time";
@@ -25,9 +23,8 @@ import rehypeKatex from "rehype-katex";
 import decapCmsOauth from "astro-decap-cms-oauth";
 
 export default defineConfig({
-      output: "static",
+  output: "static",
 
-  // ⭐ 禁用 sharp，避免构建卡死
   image: {
     service: {
       entrypoint: "astro/assets/services/noop"
@@ -84,24 +81,11 @@ export default defineConfig({
     }
   },
 
-  prefetch: {
-    defaultStrategy: "viewport",
-    prefetchAll: true
-  },
-
   site: "https://demo.343700.xyz/",
 
   vite: {
     optimizeDeps: { exclude: ["@resvg/resvg-js"] },
     plugins: [rawFonts([".ttf", ".woff"])]
-  },
-
-  env: {
-    schema: {
-      WEBMENTION_API_KEY: envField.string({ context: "server", access: "secret", optional: true }),
-      WEBMENTION_URL: envField.string({ context: "client", access: "public", optional: true }),
-      WEBMENTION_PINGBACK: envField.string({ context: "client", access: "public", optional: true })
-    }
   }
 });
 
