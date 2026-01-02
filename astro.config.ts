@@ -26,10 +26,10 @@ import rehypeKatex from "rehype-katex";
 import decapCmsOauth from "astro-decap-cms-oauth";
 
 export default defineConfig({
-  // 你原本是 SSR，所以保持 server
+  // ⭐ SSR 模式（Cactus 主题默认需要）
   output: "server",
 
-  // ⭐⭐ 关键修复：指定 Vercel 使用 nodejs20.x ⭐⭐
+  // ⭐⭐ 关键修复：强制 Vercel 使用 Node.js 20（否则会报 runtime 错误）
   adapter: vercel({
     runtime: "nodejs20.x"
   }),
